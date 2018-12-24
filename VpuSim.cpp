@@ -1,5 +1,6 @@
 #include "Vpu.h"
 #include "VpuShaderBinary.h"
+#include "VpuCompiler.h"
 
 #include <assert.h>
 #include <malloc.h>
@@ -274,8 +275,12 @@ private:
 VpuSim g_vpuSim;
 VpuThreadContext g_vpuThreadContext;
 
-int main()
+int main(int argc, char ** argv)
 {
+    printf("compiling shader\n");
+    vpu_compile(argv[0], "C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\ComputeShader.ll", "C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\ComputeShader.obj");
+    vpu_compile(argv[0], "C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\VpuShaderLib.ll", "C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\VpuShaderLib.obj");
+
     printf("loading vpu simulator\n");
 	g_vpuSim.Load();
 

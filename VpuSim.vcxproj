@@ -116,7 +116,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>C:\git\github.com\bhouse-microsoft\VpuSimShaderCompiler.build\Debug\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>LLVMX86AsmPrinter.lib;LLVMX86Desc.lib;LLVMX86Disassembler.lib;LLVMX86Info.lib;LLVMBinaryFormat.lib;LLVMCodeGen.lib;LLVMDebugInfoDWARF.lib;LLVMDebugInfoPDB.lib;LLVMDemangle.lib;LLVMMC.lib;LLVMMCDisassembler.lib;LLVMObject.lib;LLVMSupport.lib;LLVMSymbolize.lib;LLVMX86Utils.lib;LLVMBitWriter.lib;LLVMScalarOpts.lib;LLVMAggressiveInstCombine.lib;LLVMInstCombine.lib;LLVMTarget.lib;LLVMTransformUtils.lib;LLVMAnalysis.lib;LLVMProfileData.lib;LLVMBitReader.lib;LLVMCore.lib;LLVMMCParser.lib;LLVMDebugInfoCodeView.lib;LLVMDebugInfoMSF.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>LLVMAggressiveInstCombine.lib;LLVMAnalysis.lib;LLVMAsmParser.lib;LLVMAsmPrinter.lib;LLVMBinaryFormat.lib;LLVMBitReader.lib;LLVMBitWriter.lib;LLVMCodeGen.lib;LLVMCore.lib;LLVMDebugInfoCodeView.lib;LLVMDebugInfoDWARF.lib;LLVMDebugInfoMSF.lib;LLVMDebugInfoPDB.lib;LLVMDemangle.lib;LLVMGlobalISel.lib;LLVMInstCombine.lib;LLVMIRReader.lib;LLVMMC.lib;LLVMMCDisassembler.lib;LLVMMCParser.lib;LLVMMIRParser.lib;LLVMObject.lib;LLVMProfileData.lib;LLVMScalarOpts.lib;LLVMSelectionDAG.lib;LLVMSupport.lib;LLVMSymbolize.lib;LLVMTarget.lib;LLVMTransformUtils.lib;LLVMVectorize.lib;LLVMX86AsmParser.lib;LLVMX86AsmPrinter.lib;LLVMX86CodeGen.lib;LLVMX86Desc.lib;LLVMX86Disassembler.lib;LLVMX86Info.lib;LLVMX86Utils.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -177,9 +177,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Vpu.h" />
+    <ClInclude Include="VpuCompiler.h" />
     <ClInclude Include="VpuShaderBinary.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="VpuCompiler.cpp" />
     <ClCompile Include="VpuShaderBinary.cpp" />
     <ClCompile Include="VpuSim.cpp" />
   </ItemGroup>
