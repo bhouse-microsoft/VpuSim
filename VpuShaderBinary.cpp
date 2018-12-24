@@ -6,7 +6,7 @@
 using namespace llvm;
 using namespace object;
 
-bool VpuShaderBinary::FindExport(StringRef & name, uint32_t & value)
+bool VpuShaderBinary::FindExport(const char * name, uint32_t & value)
 {
     for(uint32_t i = 0; i < m_coff->getNumberOfSymbols(); i++)
     {
@@ -76,18 +76,42 @@ bool VpuShaderBinary::LoadCode(uint8_t * base, uint32_t size)
 
         auto symbol = relocation.getSymbol();
 
+        Expected<SymbolRef::Type> typeOrErr = symbol->getType();
+        if (!typeOrErr) return false;
+        SymbolRef::Type type = *typeOrErr;
+
         Expected<StringRef> nameOrErr = symbol->getName();
 
         if (!nameOrErr) return false;
 
         StringRef name = *nameOrErr;
 
+#if 0
+        auto sectionOrErr = symbol->getSection();
+        if (!sectionOrErr) return false;
+
+        auto section = *sectionOrErr;
+#endif
+
         uint32_t symbolOffset = symbol->getValue();
 
-        if (name == tlsName)
-            symbolOffset = m_tlsOffset;
-
-//        if (type != IMAGE_REL_BASED_HIGHLOW)
+        if (type == SymbolRef::Type::ST_Unknown) {
+            if (name.contains(".")) {
+                std::string newName(name);
+                std::replace(newName.begin(), newName.end(), '.', '_');
+                if (!FindExport(newName.c_str(), symbolOffset))
+                    return false;
+            } else
+                return false;
+        } else if (type == SymbolRef::Type::ST_Data) {
+            if (name == tlsName)
+                symbolOffset = m_tlsOffset;
+            else
+                return false;
+        } else if (type == SymbolRef::Type::ST_Function) {
+            ; // do nothing
+        } else
+            return false;
 
         uint32_t * loc = (uint32_t *)(base + relocationOffset);
 
@@ -139,10 +163,10 @@ bool VpuShaderBinary::Open(void)
     if (m_coff == nullptr)
         return false;
 
-    if (!FindExport(StringRef("_g_tls"), m_tlsSize))
+    if (!FindExport("_g_tls", m_tlsSize))
         return false;
 
-    if (!FindExport(StringRef("_main"), m_mainOffset))
+    if (!FindExport("_shader_main", m_mainOffset))
         return false;
 
     for (const SectionRef &section : m_obj->sections())

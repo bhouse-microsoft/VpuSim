@@ -1,6 +1,7 @@
 #include "Vpu.h"
 #include "VpuShaderBinary.h"
 #include "VpuCompiler.h"
+#include "VpuLinker.h"
 
 #include <assert.h>
 #include <malloc.h>
@@ -277,9 +278,14 @@ VpuThreadContext g_vpuThreadContext;
 
 int main(int argc, char ** argv)
 {
-//    printf("compiling shader\n");
-//    vpu_compile(argv[0], "C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\ComputeShader.ll", "C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\ComputeShader.obj");
-//    vpu_compile(argv[0], "C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\VpuShaderLib.ll", "C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\VpuShaderLib.obj");
+    printf("linker shader byte-code\n");
+
+    vpu_linker(argv[0], "C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\ComputeShader.dxil",
+        "C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\VpuShaderLib.ll",
+        "C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\VpuShader.bc");
+
+    vpu_compile(argv[0], "C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\VpuShader.bc",
+        "C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\VpuShader.obj");
 
     printf("loading vpu simulator\n");
 	g_vpuSim.Load();
@@ -320,12 +326,17 @@ int main(int argc, char ** argv)
     printf("loading shader");
     VpuShaderBinary vpuShaderBinary;
 
-    vpuShaderBinary.Open();
+    if (!vpuShaderBinary.Open()) {
+        printf("error opening binary\n");
+        exit(1);
+    }
 
-//    uint8_t * image = (uint8_t *)_aligned_malloc(vpuShaderBinary.GetImageSize(), vpuShaderBinary.GetImageAlignment());
     uint8_t * image = (uint8_t *) VirtualAlloc(NULL, vpuShaderBinary.GetImageSize(), MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 
-    vpuShaderBinary.Load(image, vpuShaderBinary.GetImageSize());
+    if (!vpuShaderBinary.Load(image, vpuShaderBinary.GetImageSize())) {
+        printf("error loading binary\n");
+        exit(1);
+    }
 
     VpuThreadLocalStorage * tls = (VpuThreadLocalStorage *) (image + vpuShaderBinary.GetTlsOffset());
     void(*shader_main)() = (void(*)(void)) (image + vpuShaderBinary.GetMainOffset());

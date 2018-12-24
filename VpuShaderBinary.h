@@ -46,7 +46,7 @@ private:
     llvm::object::SectionRef m_code;
     llvm::object::SectionRef m_data;
 
-    bool FindExport(llvm::StringRef & name, uint32_t & value);
+    bool FindExport(const char * name, uint32_t & value);
 
     bool LoadCode(uint8_t * base, uint32_t size);
 

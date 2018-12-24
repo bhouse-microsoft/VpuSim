@@ -9,7 +9,7 @@
 :: clang ComputeShader.obj VpuSim.obj VpuShaderLib.obj -o VpuSim.exe
 
 clang -c VpuShaderLib.c -emit-llvm -o VpuShaderLib.bc
-llvm-link ComputeShader.ll VpuShaderLib.bc -o VpuShader.bc
+llvm-link ComputeShader.dxil VpuShaderLib.bc -o VpuShader.bc
 llc VpuShader.bc -filetype=obj -o VpuShader.obj
 lld-link VpuShader.obj /entry:main /out:VpuShader.exe /export:g_tls /export:main /dynamicbase
 
