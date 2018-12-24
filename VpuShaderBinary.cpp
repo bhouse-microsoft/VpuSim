@@ -8,6 +8,28 @@ using namespace object;
 
 bool VpuShaderBinary::FindExport(StringRef & name, uint32_t & value)
 {
+    for(uint32_t i = 0; i < m_coff->getNumberOfSymbols(); i++)
+    {
+        Expected<COFFSymbolRef> symbolOrErr = m_coff->getSymbol(i);
+
+        if (!symbolOrErr)
+            return false;
+
+        auto symbol = *symbolOrErr;
+
+        StringRef testName;
+        if (m_coff->getSymbolName(symbol, testName))
+            return false;
+
+        if (testName == name) {
+            value = symbol.getValue();
+            return true;
+        }
+
+        i += symbol.getNumberOfAuxSymbols();
+    }
+
+#if 0
     auto i = m_coff->export_directory_begin();
     auto end = m_coff->export_directory_end();
 
@@ -26,70 +48,57 @@ bool VpuShaderBinary::FindExport(StringRef & name, uint32_t & value)
 
         ++i;
     }
+#endif
 
     return false;
 }
 
-bool VpuShaderBinary::LoadSection(llvm::object::SectionRef section, uint8_t * base, uint32_t size)
+bool VpuShaderBinary::LoadCode(uint8_t * base, uint32_t size)
 {
-    if ((m_pe32Header->SectionAlignment - 1) & (uint32_t)base)
-        return false;
-
-    uint32_t imageBase = (uint32_t)m_coff->getImageBase();
-    uint32_t imageSize = m_pe32Header->SizeOfImage;
-    uint32_t sectionBase = (uint32_t)section.getAddress();
-    uint32_t sectionSize = (uint32_t)section.getSize();
-
-    if (sectionBase < imageBase)
-        return false;
-
-    uint32_t sectionOffset = sectionBase - imageBase;
-
-    if (imageSize > size)
-        return false;
-
-    if (sectionOffset + sectionSize > size)
-        return false;
-
     StringRef contents;
-    if (section.getContents(contents))
+
+    if (m_code.getContents(contents))
         return false;
 
-    if (contents.size() > sectionSize)
+    if (contents.size() > m_codeSize)
         return false;
 
-    memset(base + sectionOffset, 0, sectionSize);
-    memcpy(base + sectionOffset, contents.data(), contents.size());
+    memset(base, 0, m_codeSize);
+    memcpy(base, contents.data(), contents.size());
 
-    uint32_t relocationDelta = (uint32_t)base - (uint32_t)imageBase;
+    StringRef tlsName = StringRef("_g_tls");
 
-    for (auto relocation : m_coff->base_relocs()) {
-        uint32_t relocationOffset;
+    for (auto relocation : m_code.relocations()) {
 
-        if (relocation.getRVA(relocationOffset))
-            return false;
+        uint32_t relocationOffset = (uint32_t) relocation.getOffset();
 
-        uint8_t type;
-        if (relocation.getType(type))
-            return false;
+        uint32_t relocationType = relocation.getType();
 
-        if (type != IMAGE_REL_BASED_HIGHLOW)
-            return false;
+        auto symbol = relocation.getSymbol();
 
-        if (relocationOffset < sectionOffset ||
-            relocationOffset >= sectionOffset + sectionSize)
-            continue;
+        Expected<StringRef> nameOrErr = symbol->getName();
+
+        if (!nameOrErr) return false;
+
+        StringRef name = *nameOrErr;
+
+        uint32_t symbolOffset = symbol->getValue();
+
+        if (name == tlsName)
+            symbolOffset = m_tlsOffset;
+
+//        if (type != IMAGE_REL_BASED_HIGHLOW)
 
         uint32_t * loc = (uint32_t *)(base + relocationOffset);
 
         uint32_t reference = *loc;
 
-        if (reference < imageBase || reference >= (imageBase + imageSize))
+        if (relocationType == IMAGE_REL_I386_REL32)
+            *loc = symbolOffset - relocationOffset - 4;
+        else if (relocationType == IMAGE_REL_I386_DIR32)
+            *loc = symbolOffset + (uint32_t) base;
+        else
             return false;
-
-        reference += relocationDelta;
-
-        *loc = reference;
     }
 
 #if 0
@@ -105,12 +114,12 @@ bool VpuShaderBinary::LoadSection(llvm::object::SectionRef section, uint8_t * ba
 
 bool VpuShaderBinary::Load(uint8_t * base, uint32_t size)
 {
-    return LoadSection(m_data, base, size) && LoadSection(m_code, base, size);
+    return LoadCode(base, size);
 }
 
 bool VpuShaderBinary::Open(void)
 {
-    StringRef file("C:/git/github.com/bhouse-microsoft/VpuSim/VpuShader.exe");
+    StringRef file("C:/git/github.com/bhouse-microsoft/VpuSim/VpuShader.obj");
 
     Expected<OwningBinary<Binary>> binaryOrErr = createBinary(file);
 
@@ -130,7 +139,10 @@ bool VpuShaderBinary::Open(void)
     if (m_coff == nullptr)
         return false;
 
-    if (m_coff->getPE32Header(m_pe32Header))
+    if (!FindExport(StringRef("_g_tls"), m_tlsSize))
+        return false;
+
+    if (!FindExport(StringRef("_main"), m_mainOffset))
         return false;
 
     for (const SectionRef &section : m_obj->sections())
@@ -139,21 +151,22 @@ bool VpuShaderBinary::Open(void)
         if (section.getName(name))
             return false;
 
-        if (name == ".text")
+        if (name == ".text") {
             m_code = section;
-        else if (name == ".data")
+            m_codeSize = AlignSectionSize(section.getSize());
+        }
+        else if (name == ".data") {
             m_data = section;
-
+        }
     }
 
     if (m_code == SectionRef() || m_data == SectionRef())
         return false;
 
-    if (!FindExport(StringRef("g_tls"), m_tlsOffset))
-        return false;
+    m_tlsOffset = m_codeSize;
+    m_dataSize = AlignSectionSize(m_tlsSize);
 
-    if (!FindExport(StringRef("main"), m_mainOffset))
-        return false;
+    m_imageSize = m_codeSize + m_dataSize;
 
     m_loaded = true;
     return true;

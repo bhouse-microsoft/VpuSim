@@ -277,9 +277,9 @@ VpuThreadContext g_vpuThreadContext;
 
 int main(int argc, char ** argv)
 {
-    printf("compiling shader\n");
-    vpu_compile(argv[0], "C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\ComputeShader.ll", "C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\ComputeShader.obj");
-    vpu_compile(argv[0], "C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\VpuShaderLib.ll", "C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\VpuShaderLib.obj");
+//    printf("compiling shader\n");
+//    vpu_compile(argv[0], "C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\ComputeShader.ll", "C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\ComputeShader.obj");
+//    vpu_compile(argv[0], "C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\VpuShaderLib.ll", "C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\VpuShaderLib.obj");
 
     printf("loading vpu simulator\n");
 	g_vpuSim.Load();

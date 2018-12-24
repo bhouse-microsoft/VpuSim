@@ -178,10 +178,12 @@
   <ItemGroup>
     <ClInclude Include="Vpu.h" />
     <ClInclude Include="VpuCompiler.h" />
+    <ClInclude Include="VpuLinker.h" />
     <ClInclude Include="VpuShaderBinary.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="VpuCompiler.cpp" />
+    <ClCompile Include="VpuLinker.cpp" />
     <ClCompile Include="VpuShaderBinary.cpp" />
     <ClCompile Include="VpuSim.cpp" />
   </ItemGroup>
