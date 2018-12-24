@@ -1,9 +1,12 @@
 #include "Vpu.h"
+#include "VpuShaderBinary.h"
 
 #include <assert.h>
 #include <malloc.h>
 #include <stdio.h>
 #include <memory.h>
+
+#include <Windows.h>
 
 extern "C" __declspec(dllimport) void shader_main();
 extern "C" __declspec(dllimport) VpuThreadLocalStorage g_tls;
@@ -134,6 +137,9 @@ public:
     VpuResource() : m_base(NULL), m_elementSize(0) {}
     VpuResource(int8_t * base, int32_t elementSize) : m_base(base), m_elementSize(elementSize) {}
 
+    int8_t * GetBase() { return m_base;  }
+    int32_t GetElementSize() { return m_elementSize; }
+
 private:
 
     int8_t * m_base;
@@ -173,9 +179,15 @@ public:
 
         VpuResource uavResource(m_globalStore->GetBase() + base.GetOffset(), elementSize);
         m_uavResources[index] = uavResource;
+    }
 
-        g_tls.m_uavs[index].m_base = m_globalStore->GetBase() + base.GetOffset();
-        g_tls.m_uavs[index].m_elementSize = elementSize;
+    VpuResourceDescriptor GetUavResourceDescriptor(size_t index)
+    {
+        VpuResourceDescriptor descriptor;
+        descriptor.m_base = m_uavResources[index].GetBase();
+        descriptor.m_elementSize = m_uavResources[index].GetElementSize();
+
+        return descriptor;
     }
 	
 private:
@@ -243,6 +255,11 @@ public:
 	{
 		m_context.SetUav(index, address, elementSize); 
 	}
+
+    VpuResourceDescriptor GetUaveResourceDescriptor(size_t index)
+    {
+        return m_context.GetUavResourceDescriptor(index);
+    }
 	
 
 private:
@@ -295,23 +312,41 @@ int main()
         g_vpuSim.SetUav(i, uavAddress[i], sizeof(uavElement));
 	}
 	
-	printf("running shader\n");
-	
-	for(int threadId = 0; threadId < 4; threadId++)
-	{
-		g_vpuThreadContext.SetId(threadId);
-		shader_main();
-	}
-	
-	printf("results\n");
-    uavElement uavResult[4];
-	g_vpuSim.Read(uavAddress[2], uavResult, sizeof(uavResult));
-	
-	for(int i = 0; i < 4; i++)
-		printf("{ %d %f } ", uavResult[i].i, uavResult[i].f);
-	printf("\n");
+    printf("loading shader");
+    VpuShaderBinary vpuShaderBinary;
 
-	printf("unloading simulator\n");
+    vpuShaderBinary.Open();
+
+//    uint8_t * image = (uint8_t *)_aligned_malloc(vpuShaderBinary.GetImageSize(), vpuShaderBinary.GetImageAlignment());
+    uint8_t * image = (uint8_t *) VirtualAlloc(NULL, vpuShaderBinary.GetImageSize(), MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+
+    vpuShaderBinary.Load(image, vpuShaderBinary.GetImageSize());
+
+    VpuThreadLocalStorage * tls = (VpuThreadLocalStorage *) (image + vpuShaderBinary.GetTlsOffset());
+    void(*shader_main)() = (void(*)(void)) (image + vpuShaderBinary.GetMainOffset());
+
+    printf("running shader\n");
+
+    for (int i = 0; i < 4; i++)
+        tls->m_uavs[i] = g_vpuSim.GetUaveResourceDescriptor(i);
+
+    for (int threadId = 0; threadId < 4; threadId++)
+    {
+        tls->m_id = threadId;
+        shader_main();
+    }
+
+    VirtualFree(image, 0, MEM_RELEASE);
+
+    printf("results\n");
+    uavElement uavResult[4];
+    g_vpuSim.Read(uavAddress[2], uavResult, sizeof(uavResult));
+
+    for (int i = 0; i < 4; i++)
+        printf("{ %d %f } ", uavResult[i].i, uavResult[i].f);
+    printf("\n");
+
+    printf("unloading simulator\n");
 	g_vpuSim.Unload();
 	
     printf("done \n");

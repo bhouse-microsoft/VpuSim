@@ -1,11 +1,22 @@
 #include "VpuShaderLib.h"
 
+#ifdef _WINDLL
 #include <stdio.h>
 #include <assert.h>
+#endif
 
+#ifdef _WINDLL
 extern __declspec(dllexport) VpuThreadLocalStorage g_tls;
+#endif
 
 VpuThreadLocalStorage g_tls;
+
+void *memset(void *src, int c, size_t n)
+{
+	int8_t * ptr = (int8_t *) src;
+	while(n-- > 0) *ptr++ = c;
+	return src;
+}
 
 dx_types_Handle dx_op_createHandle(
     int32_t opcode,
@@ -14,8 +25,11 @@ dx_types_Handle dx_op_createHandle(
     int32_t index,
     int8_t non_uniform)
 {
+#ifdef _WINDLL
     assert((int32_t)resource_class == kVpuResourceClassUAV);
     assert(index >= 0 && index < kVpuMaxUAVs);
+#endif
+
     dx_types_Handle handle = &g_tls.m_uavs[index];
 
     return handle;
@@ -56,7 +70,9 @@ void dx_op_bufferStore_f32(
     float v3,
     int8_t mask)
 {
+#ifdef _WINDLL
     assert(mask == 1);
+#endif
 
     *((float *)(handle->m_base + (index * handle->m_elementSize) + offset)) = v0;
 }
@@ -72,7 +88,9 @@ void dx_op_bufferStore_i32(
     int32_t v3,
     int32_t mask)
 {
+#ifdef _WINDLL
     assert(mask == 1);
+#endif
 
     *((int32_t *)(handle->m_base + (index * handle->m_elementSize) + offset)) = v0;
 }

@@ -78,7 +78,7 @@ target triple = "i686-pc-windows-msvc19.16.27025"
 @"\01?Buffer1@@3V?$RWStructuredBuffer@UBufType@@@@A" = external constant %"class.RWStructuredBuffer<BufType>", align 4
 @"\01?BufferOut@@3V?$RWStructuredBuffer@UBufType@@@@A" = external constant %"class.RWStructuredBuffer<BufType>", align 4
 
-define void @shader_main() {
+define void @main() {
 entry:
   %BufferOut_UAV_structbuf = call %dx_types_Handle @dx_op_createHandle(i32 57, i8 1, i32 2, i32 2, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
   %Buffer1_UAV_structbuf = call %dx_types_Handle @dx_op_createHandle(i32 57, i8 1, i32 1, i32 1, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
@@ -145,11 +145,11 @@ attributes #2 = { nounwind }
 !13 = !{i32 8, !14, !15}
 !14 = !{i32 6, !"i", i32 3, i32 0, i32 7, i32 4}
 !15 = !{i32 6, !"f", i32 3, i32 4, i32 7, i32 9}
-!16 = !{i32 1, void ()* @shader_main, !17}
+!16 = !{i32 1, void ()* @main, !17}
 !17 = !{!18}
 !18 = !{i32 0, !19, !19}
 !19 = !{}
-!20 = !{void ()* @shader_main, !"shader_main", null, !4, !21}
+!20 = !{void ()* @main, !"main", null, !4, !21}
 !21 = !{i32 0, i64 16, i32 4, !22}
 !22 = !{i32 4, i32 1, i32 1}
 
