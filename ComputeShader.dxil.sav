@@ -65,10 +65,9 @@
 ; Buffer1                               UAV  struct         r/w      U1             u1     1
 ; BufferOut                             UAV  struct         r/w      U2             u2     1
 ;
-;target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
 ;target triple = "dxil-ms-dx"
-target datalayout = "e-m:x-p:32:32-i64:64-f80:32-n8:16:32-a:0:32-S32"
-target triple = "i686-pc-windows-msvc19.16.27025"
+target triple = "i386-pc-windows-msvc19.16.27025"
 
 %"class.RWStructuredBuffer<BufType>" = type { %struct.BufType }
 %struct.BufType = type { i32, float }
@@ -80,7 +79,7 @@ target triple = "i686-pc-windows-msvc19.16.27025"
 @"\01?Buffer1@@3V?$RWStructuredBuffer@UBufType@@@@A" = external constant %"class.RWStructuredBuffer<BufType>", align 4
 @"\01?BufferOut@@3V?$RWStructuredBuffer@UBufType@@@@A" = external constant %"class.RWStructuredBuffer<BufType>", align 4
 
-define void @main() {
+define void @shader_main() {
 entry:
   %BufferOut_UAV_structbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 2, i32 2, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
   %Buffer1_UAV_structbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 1, i32 1, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
@@ -147,11 +146,11 @@ attributes #2 = { nounwind }
 !13 = !{i32 8, !14, !15}
 !14 = !{i32 6, !"i", i32 3, i32 0, i32 7, i32 4}
 !15 = !{i32 6, !"f", i32 3, i32 4, i32 7, i32 9}
-!16 = !{i32 1, void ()* @main, !17}
+!16 = !{i32 1, void ()* @shader_main, !17}
 !17 = !{!18}
 !18 = !{i32 0, !19, !19}
 !19 = !{}
-!20 = !{void ()* @main, !"main", null, !4, !21}
+!20 = !{void ()* @shader_main, !"shader_main", null, !4, !21}
 !21 = !{i32 0, i64 16, i32 4, !22}
 !22 = !{i32 4, i32 1, i32 1}
 

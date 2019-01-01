@@ -30,3 +30,9 @@ typedef struct {
 } VpuThreadLocalStorage;
 
 typedef VpuResourceDescriptor * VpuResourceHandle;
+
+struct VpuRelocation {
+	uint32_t	m_type;
+	uint64_t	m_fixupOffset; // offset from base to fixup
+	uint64_t    m_referenceOffset; // offset from base to reference
+};

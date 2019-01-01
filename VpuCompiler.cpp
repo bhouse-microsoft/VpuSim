@@ -248,6 +248,11 @@ int vpu_compile(char * progName, char * input, char * output) {
     FileType = TargetMachine::CGFT_ObjectFile;
     InputFilename = std::string(input);
     OutputFilename = std::string(output);
+#ifdef _M_IX86
+ 	MArch = std::string("x86");
+#else
+	MArch = std::string("x86-64");
+#endif
 
     Context.setDiscardValueNames(DiscardValueNames);
 

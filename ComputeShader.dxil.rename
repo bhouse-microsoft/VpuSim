@@ -70,11 +70,13 @@
 target datalayout = "e-m:x-p:32:32-i64:64-f80:32-n8:16:32-a:0:32-S32"
 target triple = "i686-pc-windows-msvc19.16.27025"
 
+
 %"class.RWStructuredBuffer<BufType>" = type { %struct.BufType }
 %struct.BufType = type { i32, float }
-%dx.types.Handle = type { i8* }
-%dx.types.ResRet.i32 = type { i32, i32, i32, i32, i32 }
-%dx.types.ResRet.f32 = type { float, float, float, float, i32 }
+
+%struct.VpuResourceDescriptor = type { i8*, i32 }
+%struct.dx_types_ResRet_f32 = type { float, float, float, float, i32 }
+%struct.dx_types_ResRet_i32 = type { i32, i32, i32, i32, i32 }
 
 @"\01?Buffer0@@3V?$RWStructuredBuffer@UBufType@@@@A" = external constant %"class.RWStructuredBuffer<BufType>", align 4
 @"\01?Buffer1@@3V?$RWStructuredBuffer@UBufType@@@@A" = external constant %"class.RWStructuredBuffer<BufType>", align 4
@@ -82,42 +84,42 @@ target triple = "i686-pc-windows-msvc19.16.27025"
 
 define void @main() {
 entry:
-  %BufferOut_UAV_structbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 2, i32 2, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
-  %Buffer1_UAV_structbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 1, i32 1, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
-  %Buffer0_UAV_structbuf = call %dx.types.Handle @dx.op.createHandle(i32 57, i8 1, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
-  %0 = call i32 @dx.op.threadId.i32(i32 93, i32 0)  ; ThreadId(component)
-  %1 = call %dx.types.ResRet.i32 @dx.op.bufferLoad.i32(i32 68, %dx.types.Handle %Buffer0_UAV_structbuf, i32 %0, i32 0)  ; BufferLoad(srv,index,wot)
-  %2 = extractvalue %dx.types.ResRet.i32 %1, 0
-  %3 = call %dx.types.ResRet.i32 @dx.op.bufferLoad.i32(i32 68, %dx.types.Handle %Buffer1_UAV_structbuf, i32 %0, i32 0)  ; BufferLoad(srv,index,wot)
-  %4 = extractvalue %dx.types.ResRet.i32 %3, 0
+  %BufferOut_UAV_structbuf = call %struct.VpuResourceDescriptor* @dx_op_createHandle(i32 57, i8 1, i32 2, i32 2, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %Buffer1_UAV_structbuf = call %struct.VpuResourceDescriptor* @dx_op_createHandle(i32 57, i8 1, i32 1, i32 1, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %Buffer0_UAV_structbuf = call %struct.VpuResourceDescriptor* @dx_op_createHandle(i32 57, i8 1, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
+  %0 = call i32 @dx_op_threadId_i32(i32 93, i32 0)  ; ThreadId(component)
+  %1 = call %struct.dx_types_ResRet_i32 @dx_op_bufferLoad_i32(i32 68, %struct.VpuResourceDescriptor* %Buffer0_UAV_structbuf, i32 %0, i32 0)  ; BufferLoad(srv,index,wot)
+  %2 = extractvalue %struct.dx_types_ResRet_i32 %1, 0
+  %3 = call %struct.dx_types_ResRet_i32 @dx_op_bufferLoad_i32(i32 68, %struct.VpuResourceDescriptor* %Buffer1_UAV_structbuf, i32 %0, i32 0)  ; BufferLoad(srv,index,wot)
+  %4 = extractvalue %struct.dx_types_ResRet_i32 %3, 0
   %add = add nsw i32 %4, %2
-  call void @dx.op.bufferStore.i32(i32 69, %dx.types.Handle %BufferOut_UAV_structbuf, i32 %0, i32 0, i32 %add, i32 undef, i32 undef, i32 undef, i8 1)  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
-  %5 = call %dx.types.ResRet.f32 @dx.op.bufferLoad.f32(i32 68, %dx.types.Handle %Buffer0_UAV_structbuf, i32 %0, i32 4)  ; BufferLoad(srv,index,wot)
-  %6 = extractvalue %dx.types.ResRet.f32 %5, 0
-  %7 = call %dx.types.ResRet.f32 @dx.op.bufferLoad.f32(i32 68, %dx.types.Handle %Buffer1_UAV_structbuf, i32 %0, i32 4)  ; BufferLoad(srv,index,wot)
-  %8 = extractvalue %dx.types.ResRet.f32 %7, 0
+  call void @dx_op_bufferStore_i32(i32 69, %struct.VpuResourceDescriptor* %BufferOut_UAV_structbuf, i32 %0, i32 0, i32 %add, i32 undef, i32 undef, i32 undef, i8 1)  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  %5 = call %struct.dx_types_ResRet_f32 @dx_op_bufferLoad_f32(i32 68, %struct.VpuResourceDescriptor* %Buffer0_UAV_structbuf, i32 %0, i32 4)  ; BufferLoad(srv,index,wot)
+  %6 = extractvalue %struct.dx_types_ResRet_f32 %5, 0
+  %7 = call %struct.dx_types_ResRet_f32 @dx_op_bufferLoad_f32(i32 68, %struct.VpuResourceDescriptor* %Buffer1_UAV_structbuf, i32 %0, i32 4)  ; BufferLoad(srv,index,wot)
+  %8 = extractvalue %struct.dx_types_ResRet_f32 %7, 0
   %add8 = fadd fast float %8, %6
-  call void @dx.op.bufferStore.f32(i32 69, %dx.types.Handle %BufferOut_UAV_structbuf, i32 %0, i32 4, float %add8, float undef, float undef, float undef, i8 1)  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+  call void @dx_op_bufferStore_f32(i32 69, %struct.VpuResourceDescriptor* %BufferOut_UAV_structbuf, i32 %0, i32 4, float %add8, float undef, float undef, float undef, i8 1)  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
   ret void
 }
 
 ; Function Attrs: nounwind readnone
-declare i32 @dx.op.threadId.i32(i32, i32) #0
+declare i32 @dx_op_threadId_i32(i32, i32) #0
 
 ; Function Attrs: nounwind readonly
-declare %dx.types.Handle @dx.op.createHandle(i32, i8, i32, i32, i1) #1
+declare %struct.VpuResourceDescriptor* @dx_op_createHandle(i32, i8, i32, i32, i1) #1
 
 ; Function Attrs: nounwind readonly
-declare %dx.types.ResRet.i32 @dx.op.bufferLoad.i32(i32, %dx.types.Handle, i32, i32) #1
+declare %struct.dx_types_ResRet_i32 @dx_op_bufferLoad_i32(i32, %struct.VpuResourceDescriptor*, i32, i32) #1
 
 ; Function Attrs: nounwind
-declare void @dx.op.bufferStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i8) #2
+declare void @dx_op_bufferStore_i32(i32, %struct.VpuResourceDescriptor*, i32, i32, i32, i32, i32, i32, i8) #2
 
 ; Function Attrs: nounwind readonly
-declare %dx.types.ResRet.f32 @dx.op.bufferLoad.f32(i32, %dx.types.Handle, i32, i32) #1
+declare %struct.dx_types_ResRet_f32 @dx_op_bufferLoad_f32(i32, %struct.VpuResourceDescriptor*, i32, i32) #1
 
 ; Function Attrs: nounwind
-declare void @dx.op.bufferStore.f32(i32, %dx.types.Handle, i32, i32, float, float, float, float, i8) #2
+declare void @dx_op_bufferStore_f32(i32, %struct.VpuResourceDescriptor*, i32, i32, float, float, float, float, i8) #2
 
 attributes #0 = { nounwind readnone }
 attributes #1 = { nounwind readonly }

@@ -2,10 +2,13 @@
 
 #include <stdint.h>
 
+#include "Vpu.h"
+
 #include "llvm/Support/Error.h"
 #include "llvm/Object/Binary.h"
 #include "llvm/Object/ObjectFile.h"
 #include "llvm/Object/COFF.h"
+#include "llvm/Object/ELF.h"
 
 class VpuShaderBinary {
 public:
@@ -13,7 +16,7 @@ public:
     VpuShaderBinary() :  m_loaded(false), m_tlsOffset(0) {}
     ~VpuShaderBinary() {}
 
-    bool Open();
+    bool Open(const char * path);
 
     bool Load(uint8_t * base, uint32_t size);
 
@@ -41,10 +44,19 @@ private:
 
     llvm::object::OwningBinary<llvm::object::Binary> m_binary;
     llvm::object::ObjectFile * m_obj;
-    const llvm::object::COFFObjectFile * m_coff;
+
+	std::vector<VpuRelocation> m_relocations;
+
+//#ifdef _M_IX86
+#if 1
+	const llvm::object::COFFObjectFile * m_coff;
+#endif
 
     llvm::object::SectionRef m_code;
-    llvm::object::SectionRef m_data;
+#if 0
+//#ifndef _M_IX86
+	llvm::object::SectionRef m_reloc;
+#endif
 
     bool FindExport(const char * name, uint32_t & value);
 
@@ -54,5 +66,8 @@ private:
     {
         return (size + kSectionAlignmentMask) & ~kSectionAlignmentMask;
     }
+
+	bool BuildRelocations(void);
+	bool ApplyRelocation(uint8_t * base, VpuRelocation & reolocation);
 
 };

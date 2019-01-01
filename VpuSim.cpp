@@ -2,11 +2,14 @@
 #include "VpuShaderBinary.h"
 #include "VpuCompiler.h"
 #include "VpuLinker.h"
+#include "VpuObject.h"
+#include "VpuImage.h"
 
 #include <assert.h>
 #include <malloc.h>
 #include <stdio.h>
 #include <memory.h>
+#include <sstream>
 
 #include <Windows.h>
 
@@ -280,9 +283,10 @@ int main(int argc, char ** argv)
 {
     printf("linker shader byte-code\n");
 
-    vpu_linker(argv[0], "C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\ComputeShader.dxil",
-        "C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\VpuShaderLib.ll",
-        "C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\VpuShader.bc");
+    vpu_linker(argv[0],
+		"C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\ComputeShader.dxil",
+		"C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\VpuShaderLib.bc",
+		"C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\VpuShader.bc");
 
     vpu_compile(argv[0], "C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\VpuShader.bc",
         "C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\VpuShader.obj");
@@ -290,7 +294,7 @@ int main(int argc, char ** argv)
     printf("loading vpu simulator\n");
 	g_vpuSim.Load();
 
-    printf("global store size = %u\n", g_vpuSim.GetGlobalStoreSize());
+    printf("global store size = %u\n", (unsigned int) g_vpuSim.GetGlobalStoreSize());
 
     printf("laying out uavs in global store \n");
 
@@ -323,23 +327,37 @@ int main(int argc, char ** argv)
         g_vpuSim.SetUav(i, uavAddress[i], sizeof(uavElement));
 	}
 	
-    printf("loading shader");
-    VpuShaderBinary vpuShaderBinary;
+	printf("building image from object\n");
+	VpuImage vpuImage;
 
-    if (!vpuShaderBinary.Open()) {
-        printf("error opening binary\n");
-        exit(1);
-    }
+	if (!vpuImage.BuildFromObj("C:/git/github.com/bhouse-microsoft/VpuSim/VpuShader.obj", "_main")) {
+		printf("error opening object\n");
+		exit(1);
+	}
 
-    uint8_t * image = (uint8_t *) VirtualAlloc(NULL, vpuShaderBinary.GetImageSize(), MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+	std::basic_stringstream<uint8_t> storage;
+	vpuImage.Store(storage);
 
-    if (!vpuShaderBinary.Load(image, vpuShaderBinary.GetImageSize())) {
-        printf("error loading binary\n");
-        exit(1);
-    }
+	printf("image storage size = %d\n", (int) storage.tellp());
 
-    VpuThreadLocalStorage * tls = (VpuThreadLocalStorage *) (image + vpuShaderBinary.GetTlsOffset());
-    void(*shader_main)() = (void(*)(void)) (image + vpuShaderBinary.GetMainOffset());
+	storage.seekg(0);
+
+	VpuImage loadedImage;
+	loadedImage.Load(storage);
+
+	uint64_t imageSize = loadedImage.GetImageInMemorySize();
+	uint8_t * image = (uint8_t *)VirtualAlloc(NULL, imageSize, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+	
+	if (!loadedImage.LoadInMemory(image, imageSize)) {
+		printf("error loading binary\n");
+		exit(1);
+	}
+
+	uint64_t tlsOffset = loadedImage.GetTlsOffset();
+	uint64_t entryOffset = loadedImage.GetEntryOffset();
+
+    VpuThreadLocalStorage * tls = (VpuThreadLocalStorage *) (image + tlsOffset);
+    void(*shader_main)() = (void(*)(void)) (image + entryOffset);
 
     printf("running shader\n");
 

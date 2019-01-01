@@ -1,155 +1,78 @@
-;
-; Input signature:
-;
-; Name                 Index   Mask Register SysValue  Format   Used
-; -------------------- ----- ------ -------- -------- ------- ------
-; no parameters
-;
-; Output signature:
-;
-; Name                 Index   Mask Register SysValue  Format   Used
-; -------------------- ----- ------ -------- -------- ------- ------
-; no parameters
-;
-; Pipeline Runtime Information: 
-;
-;
-;
-; Buffer Definitions:
-;
-; Resource bind info for Buffer0
-; {
-;
-;   struct struct.BufType
-;   {
-;
-;       int i;                                        ; Offset:    0
-;       float f;                                      ; Offset:    4
-;   
-;   } $Element;                                       ; Offset:    0 Size:     8
-;
-; }
-;
-; Resource bind info for Buffer1
-; {
-;
-;   struct struct.BufType
-;   {
-;
-;       int i;                                        ; Offset:    0
-;       float f;                                      ; Offset:    4
-;   
-;   } $Element;                                       ; Offset:    0 Size:     8
-;
-; }
-;
-; Resource bind info for BufferOut
-; {
-;
-;   struct struct.BufType
-;   {
-;
-;       int i;                                        ; Offset:    0
-;       float f;                                      ; Offset:    4
-;   
-;   } $Element;                                       ; Offset:    0 Size:     8
-;
-; }
-;
-;
-; Resource Bindings:
-;
-; Name                                 Type  Format         Dim      ID      HLSL Bind  Count
-; ------------------------------ ---------- ------- ----------- ------- -------------- ------
-; Buffer0                               UAV  struct         r/w      U0             u0     1
-; Buffer1                               UAV  struct         r/w      U1             u1     1
-; BufferOut                             UAV  struct         r/w      U2             u2     1
-;
-target datalayout = "e-m:e-p:32:32-i1:32-i8:32-i16:32-i32:32-i64:64-f16:32-f32:32-f64:64-n8:16:32:64"
+; ModuleID = 'ComputeShader.bc'
+source_filename = "ComputeShader.c"
+target datalayout = "e-m:x-p:32:32-i64:64-f80:32-n8:16:32-a:0:32-S32"
 target triple = "i686-pc-windows-msvc19.16.27025"
 
-%"class.RWStructuredBuffer<BufType>" = type { %struct.BufType }
-%struct.BufType = type { i32, float }
-%dx_types_Handle = type { i8* }
-%dx_types_ResRet_i32 = type { i32, i32, i32, i32, i32 }
-%dx_types_ResRet_f32 = type { float, float, float, float, i32 }
+%struct.VpuResourceDescriptor = type { i8*, i32 }
+%struct.dx_types_ResRet_i32 = type { i32, i32, i32, i32, i32 }
+%struct.dx_types_ResRet_f32 = type { float, float, float, float, i32 }
 
-@"\01?Buffer0@@3V?$RWStructuredBuffer@UBufType@@@@A" = external constant %"class.RWStructuredBuffer<BufType>", align 4
-@"\01?Buffer1@@3V?$RWStructuredBuffer@UBufType@@@@A" = external constant %"class.RWStructuredBuffer<BufType>", align 4
-@"\01?BufferOut@@3V?$RWStructuredBuffer@UBufType@@@@A" = external constant %"class.RWStructuredBuffer<BufType>", align 4
-
-define void @main() {
-entry:
-  %BufferOut_UAV_structbuf = call %dx_types_Handle @dx_op_createHandle(i32 57, i8 1, i32 2, i32 2, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
-  %Buffer1_UAV_structbuf = call %dx_types_Handle @dx_op_createHandle(i32 57, i8 1, i32 1, i32 1, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
-  %Buffer0_UAV_structbuf = call %dx_types_Handle @dx_op_createHandle(i32 57, i8 1, i32 0, i32 0, i1 false)  ; CreateHandle(resourceClass,rangeId,index,nonUniformIndex)
-  %0 = call i32 @dx_op_threadId_i32(i32 93, i32 0)  ; ThreadId(component)
-  %1 = call %dx_types_ResRet_i32 @dx_op_bufferLoad_i32(i32 68, %dx_types_Handle %Buffer0_UAV_structbuf, i32 %0, i32 0)  ; BufferLoad(srv,index,wot)
-  %2 = extractvalue %dx_types_ResRet_i32 %1, 0
-  %3 = call %dx_types_ResRet_i32 @dx_op_bufferLoad_i32(i32 68, %dx_types_Handle %Buffer1_UAV_structbuf, i32 %0, i32 0)  ; BufferLoad(srv,index,wot)
-  %4 = extractvalue %dx_types_ResRet_i32 %3, 0
-  %add = add nsw i32 %4, %2
-  call void @dx_op_bufferStore_i32(i32 69, %dx_types_Handle %BufferOut_UAV_structbuf, i32 %0, i32 0, i32 %add, i32 undef, i32 undef, i32 undef, i8 1)  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
-  %5 = call %dx_types_ResRet_f32 @dx_op_bufferLoad_f32(i32 68, %dx_types_Handle %Buffer0_UAV_structbuf, i32 %0, i32 4)  ; BufferLoad(srv,index,wot)
-  %6 = extractvalue %dx_types_ResRet_f32 %5, 0
-  %7 = call %dx_types_ResRet_f32 @dx_op_bufferLoad_f32(i32 68, %dx_types_Handle %Buffer1_UAV_structbuf, i32 %0, i32 4)  ; BufferLoad(srv,index,wot)
-  %8 = extractvalue %dx_types_ResRet_f32 %7, 0
-  %add8 = fadd fast float %8, %6
-  call void @dx_op_bufferStore_f32(i32 69, %dx_types_Handle %BufferOut_UAV_structbuf, i32 %0, i32 4, float %add8, float undef, float undef, float undef, i8 1)  ; BufferStore(uav,coord0,coord1,value0,value1,value2,value3,mask)
+; Function Attrs: noinline nounwind optnone
+define dso_local void @shader_main() #0 {
+  %1 = alloca %struct.VpuResourceDescriptor*, align 4
+  %2 = alloca %struct.VpuResourceDescriptor*, align 4
+  %3 = alloca %struct.VpuResourceDescriptor*, align 4
+  %4 = alloca i32, align 4
+  %5 = alloca %struct.dx_types_ResRet_i32, align 4
+  %6 = alloca %struct.dx_types_ResRet_i32, align 4
+  %7 = alloca i32, align 4
+  %8 = alloca %struct.dx_types_ResRet_f32, align 4
+  %9 = alloca %struct.dx_types_ResRet_f32, align 4
+  %10 = alloca i32, align 4
+  %11 = call %struct.VpuResourceDescriptor* @dx_op_createHandle(i32 57, i8 signext 1, i32 2, i32 2, i8 signext 0)
+  store %struct.VpuResourceDescriptor* %11, %struct.VpuResourceDescriptor** %1, align 4
+  %12 = call %struct.VpuResourceDescriptor* @dx_op_createHandle(i32 57, i8 signext 1, i32 2, i32 2, i8 signext 0)
+  store %struct.VpuResourceDescriptor* %12, %struct.VpuResourceDescriptor** %2, align 4
+  %13 = call %struct.VpuResourceDescriptor* @dx_op_createHandle(i32 57, i8 signext 1, i32 2, i32 2, i8 signext 0)
+  store %struct.VpuResourceDescriptor* %13, %struct.VpuResourceDescriptor** %3, align 4
+  %14 = call i32 @dx_op_threadId_i32(i32 93, i32 0)
+  store i32 %14, i32* %4, align 4
+  %15 = load %struct.VpuResourceDescriptor*, %struct.VpuResourceDescriptor** %3, align 4
+  call void @dx_op_bufferLoad_i32(%struct.dx_types_ResRet_i32* sret %5, i32 68, %struct.VpuResourceDescriptor* %15, i32 0, i32 0)
+  %16 = load %struct.VpuResourceDescriptor*, %struct.VpuResourceDescriptor** %2, align 4
+  call void @dx_op_bufferLoad_i32(%struct.dx_types_ResRet_i32* sret %6, i32 68, %struct.VpuResourceDescriptor* %16, i32 0, i32 0)
+  %17 = getelementptr inbounds %struct.dx_types_ResRet_i32, %struct.dx_types_ResRet_i32* %5, i32 0, i32 0
+  %18 = load i32, i32* %17, align 4
+  %19 = getelementptr inbounds %struct.dx_types_ResRet_i32, %struct.dx_types_ResRet_i32* %6, i32 0, i32 0
+  %20 = load i32, i32* %19, align 4
+  %21 = add nsw i32 %18, %20
+  store i32 %21, i32* %7, align 4
+  %22 = load i32, i32* %7, align 4
+  %23 = load %struct.VpuResourceDescriptor*, %struct.VpuResourceDescriptor** %1, align 4
+  call void @dx_op_bufferStore_i32(i32 69, %struct.VpuResourceDescriptor* %23, i32 0, i32 0, i32 %22, i32 0, i32 0, i32 0, i32 1)
+  %24 = load %struct.VpuResourceDescriptor*, %struct.VpuResourceDescriptor** %3, align 4
+  call void @dx_op_bufferLoad_f32(%struct.dx_types_ResRet_f32* sret %8, i32 68, %struct.VpuResourceDescriptor* %24, i32 0, i32 0)
+  %25 = load %struct.VpuResourceDescriptor*, %struct.VpuResourceDescriptor** %2, align 4
+  call void @dx_op_bufferLoad_f32(%struct.dx_types_ResRet_f32* sret %9, i32 68, %struct.VpuResourceDescriptor* %25, i32 0, i32 0)
+  %26 = getelementptr inbounds %struct.dx_types_ResRet_f32, %struct.dx_types_ResRet_f32* %8, i32 0, i32 0
+  %27 = load float, float* %26, align 4
+  %28 = getelementptr inbounds %struct.dx_types_ResRet_f32, %struct.dx_types_ResRet_f32* %9, i32 0, i32 0
+  %29 = load float, float* %28, align 4
+  %30 = fadd float %27, %29
+  %31 = fptosi float %30 to i32
+  store i32 %31, i32* %10, align 4
+  %32 = load i32, i32* %10, align 4
+  %33 = load %struct.VpuResourceDescriptor*, %struct.VpuResourceDescriptor** %1, align 4
+  call void @dx_op_bufferStore_i32(i32 69, %struct.VpuResourceDescriptor* %33, i32 0, i32 0, i32 %32, i32 0, i32 0, i32 0, i32 1)
   ret void
 }
 
-; Function Attrs: nounwind readnone
-declare i32 @dx_op_threadId_i32(i32, i32) #0
+declare dso_local %struct.VpuResourceDescriptor* @dx_op_createHandle(i32, i8 signext, i32, i32, i8 signext) #1
 
-; Function Attrs: nounwind readonly
-declare %dx_types_Handle @dx_op_createHandle(i32, i8, i32, i32, i1) #1
+declare dso_local i32 @dx_op_threadId_i32(i32, i32) #1
 
-; Function Attrs: nounwind readonly
-declare %dx_types_ResRet_i32 @dx_op_bufferLoad_i32(i32, %dx_types_Handle, i32, i32) #1
+declare dso_local void @dx_op_bufferLoad_i32(%struct.dx_types_ResRet_i32* sret, i32, %struct.VpuResourceDescriptor*, i32, i32) #1
 
-; Function Attrs: nounwind
-declare void @dx_op_bufferStore_i32(i32, %dx_types_Handle, i32, i32, i32, i32, i32, i32, i8) #2
+declare dso_local void @dx_op_bufferStore_i32(i32, %struct.VpuResourceDescriptor*, i32, i32, i32, i32, i32, i32, i32) #1
 
-; Function Attrs: nounwind readonly
-declare %dx_types_ResRet_f32 @dx_op_bufferLoad_f32(i32, %dx_types_Handle, i32, i32) #1
+declare dso_local void @dx_op_bufferLoad_f32(%struct.dx_types_ResRet_f32* sret, i32, %struct.VpuResourceDescriptor*, i32, i32) #1
 
-; Function Attrs: nounwind
-declare void @dx_op_bufferStore_f32(i32, %dx_types_Handle, i32, i32, float, float, float, float, i8) #2
+attributes #0 = { noinline nounwind optnone "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="i386" "target-features"="+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
+attributes #1 = { "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="true" "no-frame-pointer-elim-non-leaf" "no-infs-fp-math"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="i386" "target-features"="+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
 
-attributes #0 = { nounwind readnone }
-attributes #1 = { nounwind readonly }
-attributes #2 = { nounwind }
+!llvm.module.flags = !{!0, !1}
+!llvm.ident = !{!2}
 
-!llvm.ident = !{!0}
-!dx.version = !{!1}
-!dx.valver = !{!2}
-!dx.shaderModel = !{!3}
-!dx.resources = !{!4}
-!dx.typeAnnotations = !{!10, !16}
-!dx.entryPoints = !{!20}
-
-!0 = !{!"clang version 3.7 (tags/RELEASE_370/final)"}
-!1 = !{i32 1, i32 0}
-!2 = !{i32 1, i32 4}
-!3 = !{!"cs", i32 6, i32 0}
-!4 = !{null, !5, null, null}
-!5 = !{!6, !8, !9}
-!6 = !{i32 0, %"class.RWStructuredBuffer<BufType>"* undef, !"Buffer0", i32 0, i32 0, i32 1, i32 12, i1 false, i1 false, i1 false, !7}
-!7 = !{i32 1, i32 8}
-!8 = !{i32 1, %"class.RWStructuredBuffer<BufType>"* undef, !"Buffer1", i32 0, i32 1, i32 1, i32 12, i1 false, i1 false, i1 false, !7}
-!9 = !{i32 2, %"class.RWStructuredBuffer<BufType>"* undef, !"BufferOut", i32 0, i32 2, i32 1, i32 12, i1 false, i1 false, i1 false, !7}
-!10 = !{i32 0, %"class.RWStructuredBuffer<BufType>" undef, !11, %struct.BufType undef, !13}
-!11 = !{i32 8, !12}
-!12 = !{i32 6, !"h", i32 3, i32 0}
-!13 = !{i32 8, !14, !15}
-!14 = !{i32 6, !"i", i32 3, i32 0, i32 7, i32 4}
-!15 = !{i32 6, !"f", i32 3, i32 4, i32 7, i32 9}
-!16 = !{i32 1, void ()* @main, !17}
-!17 = !{!18}
-!18 = !{i32 0, !19, !19}
-!19 = !{}
-!20 = !{void ()* @main, !"main", null, !4, !21}
-!21 = !{i32 0, i64 16, i32 4, !22}
-!22 = !{i32 4, i32 1, i32 1}
-
+!0 = !{i32 1, !"NumRegisterParameters", i32 0}
+!1 = !{i32 1, !"wchar_size", i32 2}
+!2 = !{!"clang version 7.0.0 (tags/RELEASE_700/final)"}
