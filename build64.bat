@@ -7,10 +7,13 @@ set CLANGBIN=C:\llvm\7.0.0\x32\bin
 set DXC="%KITSBIN%\dxc.exe"
 set CLANG="%CLANGBIN%\clang.exe"
 
+:: Build test dxil
 %DXC% -T cs_6_0 -E main Test.hlsl > Test.dxil
 
+:: Build VpuShaderLib.ll
 %CLANG% -march=x86-64 -c VpuShaderLib.c -emit-llvm -o VpuShaderLib.bc
 %LLVMBIN%\llvm-dis VpuShaderLib.bc -o=VpuShaderLib.ll
+del VpuShaderLib.bc
 
 :: %CLANG% -march=x86-64 -c VpuShader.c -emit-llvm -o VpuShader.bc
 :: %LLVMBIN%\llvm-dis VpuShader.bc -o=VpuShader.ll
@@ -38,12 +41,12 @@ set CLANG="%CLANGBIN%\clang.exe"
 :: %CLANG% -march=x86-64 -c ComputeShader.c -emit-llvm -o ComputeShader.bc
 :: %LLVMBIN%\llvm-dis ComputeShader.bc -o=ComputeShader.ll
 
-%LLVMBIN%\llvm-link VpuShaderLib.bc DxilToVpu.ll Test.dxil -o VpuShader.bc
-%LLVMBIN%\llvm-dis VpuShader.bc -o=VpuShader.ll
+:: %LLVMBIN%\llvm-link VpuShaderLib.bc DxilToVpu.ll Test.dxil -o VpuShader.bc
+:: %LLVMBIN%\llvm-dis VpuShader.bc -o=VpuShader.ll
 
-%LLVMBIN%\llc -mtriple=x86_64-pc-windows-msvc19.16.27025 VpuShader.bc -filetype=obj -o VpuShader.obj
-%LLVMBIN%\llvm-objdump -r VpuShader.obj > VpuShader.reloc
-%LLVMBIN%\llvm-objdump -disassemble -r VpuShader.obj > VpuShader.asm
-%LLVMBIN%\llvm-objdump -t VpuShader.obj > VpuShader.sym
+:: %LLVMBIN%\llc -mtriple=x86_64-pc-windows-msvc19.16.27025 VpuShader.bc -filetype=obj -o VpuShader.obj
+:: %LLVMBIN%\llvm-objdump -r VpuShader.obj > VpuShader.reloc
+:: %LLVMBIN%\llvm-objdump -disassemble -r VpuShader.obj > VpuShader.asm
+:: %LLVMBIN%\llvm-objdump -t VpuShader.obj > VpuShader.sym
 
 
