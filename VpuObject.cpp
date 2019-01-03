@@ -115,6 +115,8 @@ bool VpuObject::GetCode(uint8_t * buffer, uint64_t size)
 
 	memset(buffer, 0, size);
 	memcpy(buffer, contents.data(), contents.size());
+
+	return true;
 }
 
 void VpuObject::Close()

@@ -111,16 +111,7 @@ declare %dx.types.ResRet.i32 @dx.op.bufferLoad.i32(i32, %dx.types.Handle, i32, i
 declare void @dx.op.bufferStore.i32(i32, %dx.types.Handle, i32, i32, i32, i32, i32, i32, i8) #2
 
 ; Function Attrs: nounwind readonly
-declare void @dx_op_bufferLoad_f32(%dx.types.ResRet.f32* noalias sret, i32, %dx.types.Handle, i32, i32) #4
-
-attributes #4 = { noinline nounwind optnone uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
-
-define %dx.types.ResRet.f32 @dx.op.bufferLoad.f32(i32, %dx.types.Handle, i32, i32) {
-  %5 = alloca %dx.types.ResRet.f32, align 4
-  call void @dx_op_bufferLoad_f32(%dx.types.ResRet.f32* sret %5, i32 %0, %dx.types.Handle %1, i32 %2, i32 %3) 
-  %6 = load %dx.types.ResRet.f32, %dx.types.ResRet.f32* %5
-  ret %dx.types.ResRet.f32 %6
-}
+declare %dx.types.ResRet.f32 @dx.op.bufferLoad.f32(i32, %dx.types.Handle, i32, i32) #1
 
 ; Function Attrs: nounwind
 declare void @dx.op.bufferStore.f32(i32, %dx.types.Handle, i32, i32, float, float, float, float, i8) #2

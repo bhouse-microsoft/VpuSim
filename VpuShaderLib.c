@@ -19,71 +19,59 @@ void *memset(void *src, int c, size_t n)
 }
 
 dx_types_Handle dx_op_createHandle(
-    int32_t opcode,
-    int8_t resource_class,
-    int32_t range_id,
-    int32_t index,
-    int8_t non_uniform)
+    uint8_t resource_class,
+    uint32_t range_id,
+    uint32_t index,
+    uint8_t non_uniform)
 {
 #ifdef _WINDLL
     assert((int32_t)resource_class == kVpuResourceClassUAV);
-    assert(index >= 0 && index < kVpuMaxUAVs);
+    assert(index < kVpuMaxUAVs);
 #endif
 
-    dx_types_Handle dxHandle = { (int8_t *)&g_tls.m_uavs[index] };
-
-    return dxHandle;
+    
+	return (dx_types_Handle) &g_tls.m_uavs[index];
 }
 
-dx_types_ResRet_f32 dx_op_bufferLoad_f32(
-    int32_t opcode,
+void dx_op_bufferLoad_f32(
+	dx_types_ResRet_f32  * result,
     dx_types_Handle dxHandle,
-    int32_t index,
-    int32_t offset)
+    uint32_t index,
+    uint32_t offset)
 {
-	VpuResourceHandle handle = (VpuResourceHandle) dxHandle.m_ptr;
-    dx_types_ResRet_f32 ret;
+	VpuResourceHandle handle = (VpuResourceHandle) dxHandle;
 
-	ret.v1 = 0.0f;
-	ret.v2 = 0.0f;
-	ret.v3 = 0.0f;
-	ret.mask = 0;
-	
-    ret.v0 = *((float *)(handle->m_base + (index * handle->m_elementSize) + offset));
+	result->v1 = result->v2 = result->v3 = 0.0f;
+	result->mask = 0;
 
-    return ret;
+    result->v0 = *((float *)(handle->m_base + (index * handle->m_elementSize) + offset));
 }
 
-dx_types_ResRet_i32 dx_op_bufferLoad_i32(
-    int32_t opcode,
+void dx_op_bufferLoad_i32(
+	dx_types_ResRet_i32  * result,
     dx_types_Handle dxHandle,
-    int32_t index,
-    int32_t offset)
+    uint32_t index,
+    uint32_t offset)
 {
-	VpuResourceHandle handle = (VpuResourceHandle) dxHandle.m_ptr;
-	dx_types_ResRet_i32 ret;
-    ret.v1 = 0;
-    ret.v2 = 0;
-    ret.v3 = 0;
-    ret.mask = 0;
-	
-    ret.v0 = *((int32_t *)(handle->m_base + (index * handle->m_elementSize) + offset));
+	VpuResourceHandle handle = (VpuResourceHandle) dxHandle;
 
-    return ret;
+	result->v1 = result->v2 = result->v3 = 0;
+	result->mask = 0;
+	
+    result->v0 = *((int32_t *)(handle->m_base + (index * handle->m_elementSize) + offset));
 }
 
 void dx_op_bufferStore_f32(
-    int32_t opcode,
     dx_types_Handle dxHandle,
-    int32_t index,
-    int32_t offset,
+    uint32_t index,
+    uint32_t offset,
     float v0,
     float v1,
     float v2,
     float v3,
-    int8_t mask)
+    uint8_t mask)
 {
-	VpuResourceHandle handle = (VpuResourceHandle) dxHandle.m_ptr;
+	VpuResourceHandle handle = (VpuResourceHandle) dxHandle;
 
 #ifdef _WINDLL
     assert(mask == 1);
@@ -93,17 +81,16 @@ void dx_op_bufferStore_f32(
 }
 
 void dx_op_bufferStore_i32(
-    int32_t opcode,
     dx_types_Handle dxHandle,
-    int32_t index,
-    int32_t offset,
+    uint32_t index,
+    uint32_t offset,
     int32_t v0,
     int32_t v1,
     int32_t v2,
     int32_t v3,
-    int32_t mask)
+    uint8_t mask)
 {
-	VpuResourceHandle handle = (VpuResourceHandle) dxHandle.m_ptr;
+	VpuResourceHandle handle = (VpuResourceHandle) dxHandle;
 
 #ifdef _WINDLL
     assert(mask == 1);
@@ -112,9 +99,7 @@ void dx_op_bufferStore_i32(
     *((int32_t *)(handle->m_base + (index * handle->m_elementSize) + offset)) = v0;
 }
 
-int32_t dx_op_threadId_i32(
-    int32_t opcode,
-    int32_t do_not_know)
+uint32_t dx_op_threadId_i32(void)
 {
     return g_tls.m_id;
 }

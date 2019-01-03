@@ -1,3 +1,3 @@
 #pragma once
 
-int vpu_linker(char * exe, char * input_a, char * input_b, char * output);
+int vpu_linker(char * exe, char * input_a, char * input_b, char * input_c, char * output);

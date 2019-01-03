@@ -329,11 +329,12 @@ static bool linkFiles(const char *argv0, LLVMContext &Context, Linker &L,
     return true;
 }
 
-int vpu_linker(char * exe, char * input_a, char * input_b, char * output) {
+int vpu_linker(char * exe, char * input_a, char * input_b, char * input_c, char * output) {
 
     InputFilenames.reset();
     InputFilenames.addValue(input_a);
     InputFilenames.addValue(input_b);
+	InputFilenames.addValue(input_c);
 
 //    InitLLVM X(argc, argv);
     ExitOnErr.setBanner(std::string(exe) + ": ");

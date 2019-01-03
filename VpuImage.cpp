@@ -50,8 +50,6 @@ bool VpuImage::BuildFromObj(const char * objPath, const char * entryName)
 			else {
 
 				std::string name = or.m_symbolName;
-				if (name.find(".") != std::string::npos)
-					std::replace(name.begin(), name.end(), '.', '_');
 
 				if (!obj.GetSymbolValue(name.c_str(), r.m_referenceOffset)) {
 					success = false;
