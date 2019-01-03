@@ -96,8 +96,10 @@ bool VpuShaderBinary::ApplyRelocation(uint8_t * base, VpuRelocation & relocation
 
 	if (relocation.m_type == IMAGE_REL_I386_REL32 || relocation.m_type == IMAGE_REL_AMD64_REL32)
 		*loc = relocation.m_referenceOffset - relocation.m_fixupOffset - 4;
-	else if (relocation.m_type == IMAGE_REL_I386_DIR32)
+#ifdef _M_IX86
+    else if (relocation.m_type == IMAGE_REL_I386_DIR32)
 		*loc = relocation.m_referenceOffset + (uint32_t)base;
+#endif
 	else
 		return false;
 	return true;

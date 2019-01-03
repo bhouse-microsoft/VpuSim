@@ -5,7 +5,9 @@
 typedef struct { float v0; float v1; float v2; float v3; int32_t mask; } dx_types_ResRet_f32;
 typedef struct { int32_t v0; int32_t v1; int32_t v2; int32_t v3; int32_t mask; } dx_types_ResRet_i32;
 
-typedef VpuResourceHandle dx_types_Handle;
+typedef struct {
+	int8_t * m_ptr;
+} dx_types_Handle;
 
 dx_types_Handle dx_op_createHandle(
     int32_t opcode,

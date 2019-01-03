@@ -30,18 +30,25 @@ dx_types_Handle dx_op_createHandle(
     assert(index >= 0 && index < kVpuMaxUAVs);
 #endif
 
-    dx_types_Handle handle = &g_tls.m_uavs[index];
+    dx_types_Handle dxHandle = { (int8_t *)&g_tls.m_uavs[index] };
 
-    return handle;
+    return dxHandle;
 }
 
 dx_types_ResRet_f32 dx_op_bufferLoad_f32(
     int32_t opcode,
-    dx_types_Handle handle,
+    dx_types_Handle dxHandle,
     int32_t index,
     int32_t offset)
 {
-    dx_types_ResRet_f32 ret = { 0.0f, 0.0f, 0.0f, 0.0f, 0 };
+	VpuResourceHandle handle = (VpuResourceHandle) dxHandle.m_ptr;
+    dx_types_ResRet_f32 ret;
+
+	ret.v1 = 0.0f;
+	ret.v2 = 0.0f;
+	ret.v3 = 0.0f;
+	ret.mask = 0;
+	
     ret.v0 = *((float *)(handle->m_base + (index * handle->m_elementSize) + offset));
 
     return ret;
@@ -49,11 +56,17 @@ dx_types_ResRet_f32 dx_op_bufferLoad_f32(
 
 dx_types_ResRet_i32 dx_op_bufferLoad_i32(
     int32_t opcode,
-    dx_types_Handle handle,
+    dx_types_Handle dxHandle,
     int32_t index,
     int32_t offset)
 {
-    dx_types_ResRet_i32 ret = { 0, 0, 0, 0, 0 };
+	VpuResourceHandle handle = (VpuResourceHandle) dxHandle.m_ptr;
+	dx_types_ResRet_i32 ret;
+    ret.v1 = 0;
+    ret.v2 = 0;
+    ret.v3 = 0;
+    ret.mask = 0;
+	
     ret.v0 = *((int32_t *)(handle->m_base + (index * handle->m_elementSize) + offset));
 
     return ret;
@@ -61,7 +74,7 @@ dx_types_ResRet_i32 dx_op_bufferLoad_i32(
 
 void dx_op_bufferStore_f32(
     int32_t opcode,
-    dx_types_Handle handle,
+    dx_types_Handle dxHandle,
     int32_t index,
     int32_t offset,
     float v0,
@@ -70,6 +83,8 @@ void dx_op_bufferStore_f32(
     float v3,
     int8_t mask)
 {
+	VpuResourceHandle handle = (VpuResourceHandle) dxHandle.m_ptr;
+
 #ifdef _WINDLL
     assert(mask == 1);
 #endif
@@ -79,7 +94,7 @@ void dx_op_bufferStore_f32(
 
 void dx_op_bufferStore_i32(
     int32_t opcode,
-    dx_types_Handle handle,
+    dx_types_Handle dxHandle,
     int32_t index,
     int32_t offset,
     int32_t v0,
@@ -88,6 +103,8 @@ void dx_op_bufferStore_i32(
     int32_t v3,
     int32_t mask)
 {
+	VpuResourceHandle handle = (VpuResourceHandle) dxHandle.m_ptr;
+
 #ifdef _WINDLL
     assert(mask == 1);
 #endif
