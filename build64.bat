@@ -1,18 +1,15 @@
-set KITSBIN=%ProgramFiles(x86)%\Windows Kits\10\bin\10.0.18298.0\x64
-set GITDIR=C:\git
-set LLVMBIN=%GITDIR%\github.com\bhouse-microsoft\VpuSimShaderCompiler.build64\debug\bin
-:: set CLANGBIN=%ProgramFiles%\LLVM\bin
-set CLANGBIN=C:\llvm\7.0.0\x32\bin
+:: Expect LLVM64 to be set to LLVM 7.0.0 build which contains llvm tools
+:: Expect CLANG to be set to LLVM 7.0.0 build which contains clang
 
+set KITSBIN=%ProgramFiles(x86)%\Windows Kits\10\bin\10.0.18298.0\x64
 set DXC="%KITSBIN%\dxc.exe"
-set CLANG="%CLANGBIN%\clang.exe"
 
 :: Build test dxil
 %DXC% -T cs_6_0 -E main Test.hlsl > Test.dxil
 
 :: Build VpuShaderLib.ll
-%CLANG% -march=x86-64 -c VpuShaderLib.c -emit-llvm -o VpuShaderLib.bc
-%LLVMBIN%\llvm-dis VpuShaderLib.bc -o=VpuShaderLib.ll
+"%CLANG%\clang.exe" -march=x86-64 -c VpuShaderLib.c -emit-llvm -o VpuShaderLib.bc
+"%LLVM64%\llvm-dis" VpuShaderLib.bc -o=VpuShaderLib.ll
 del VpuShaderLib.bc
 
 :: %CLANG% -march=x86-64 -c VpuShader.c -emit-llvm -o VpuShader.bc
