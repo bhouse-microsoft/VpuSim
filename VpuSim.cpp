@@ -284,13 +284,12 @@ int main(int argc, char ** argv)
     printf("linker shader byte-code\n");
 
     vpu_linker(argv[0],
-		"C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\VpuShaderLib.bc",
-		"C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\DxilToVpu.ll",
-		"C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\ComputeShader.dxil",
-		"C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\VpuShader.bc");
+		"VpuShaderLib.bc",
+		"DxilToVpu.ll",
+		"test.dxil",
+		"VpuShader.bc");
 
-    vpu_compile(argv[0], "C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\VpuShader.bc",
-        "C:\\git\\github.com\\bhouse-microsoft\\VpuSim\\VpuShader.obj");
+    vpu_compile(argv[0], "VpuShader.bc", "VpuShader.obj");
 
     printf("loading vpu simulator\n");
 	g_vpuSim.Load();
@@ -331,7 +330,7 @@ int main(int argc, char ** argv)
 	printf("building image from object\n");
 	VpuImage vpuImage;
 
-	if (!vpuImage.BuildFromObj("C:/git/github.com/bhouse-microsoft/VpuSim/VpuShader.obj", "main")) {
+	if (!vpuImage.BuildFromObj("VpuShader.obj", "main")) {
 		printf("error opening object\n");
 		exit(1);
 	}

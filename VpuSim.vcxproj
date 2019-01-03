@@ -199,6 +199,15 @@
     <ClCompile Include="VpuLinker.cpp" />
     <ClCompile Include="VpuObject.cpp" />
     <ClCompile Include="VpuShaderBinary.cpp" />
+    <CustomBuild Include="VpuShaderLib.c">
+      <FileType>CppCode</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(CLANG)\clang" -march=x86-64 -c  %(Filename).c  -emit-llvm -o $(OutDir)%(Filename).bc
+"$(LLVM64)\llvm-dis" $(OutDir)%(Filename).bc -o=$(OutDir)%(Filename).ll
+</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)%(Filename).bc;$(OutDir)%(Filename).ll;%(Outputs)</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</TreatOutputAsContent>
+    </CustomBuild>
     <ClCompile Include="VpuSim.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -207,7 +216,24 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <CopyFileToFolders Include="DxilToVpu.ll">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</DeploymentContent>
+      <FileType>Document</FileType>
+    </CopyFileToFolders>
     <None Include="VpuOptions.inc" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="Test.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">6.0</ShaderModel>
+      <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AssemblyCode</AssemblerOutput>
+      <AssemblerOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)%(Filename).dxil</AssemblerOutputFile>
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(WDKBinRoot)\$(Platform)\dxc.exe" -T cs_6_0 -E main %(Identity) &gt; $(OutDir)%(Filename).dxil</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"> $(OutDir)%(Filename).dxil</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</TreatOutputAsContent>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
