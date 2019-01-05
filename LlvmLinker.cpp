@@ -329,7 +329,7 @@ static bool linkFiles(const char *argv0, LLVMContext &Context, Linker &L,
     return true;
 }
 
-int vpu_linker(char * exe, char * input_a, char * input_b, char * input_c, char * output) {
+int llvm_linker(char * exe, char * input_a, char * input_b, char * input_c, char * output) {
 
     InputFilenames.reset();
     InputFilenames.addValue(input_a);

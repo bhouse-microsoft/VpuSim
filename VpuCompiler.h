@@ -1,4 +1,6 @@
 #pragma once
 
-int vpu_compile(char * exe, char * input, char * output);
+#include <Windows.h>
+#include <d3dcommon.h>
 
+bool vpu_compiler(ID3DBlob * inDxilByteCode, ID3DBlob ** outVpuImage);

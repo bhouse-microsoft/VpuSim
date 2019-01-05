@@ -1,5 +1,5 @@
 #include "VpuImage.h"
-#include "VpuObject.h"
+#include "LlvmObject.h"
 
 #include "llvm/Support/Error.h"
 #include "llvm/Object/Binary.h"

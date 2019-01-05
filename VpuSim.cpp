@@ -1,9 +1,10 @@
 #include "Vpu.h"
 #include "VpuShaderBinary.h"
-#include "VpuCompiler.h"
-#include "VpuLinker.h"
-#include "VpuObject.h"
+#include "LlvmCompiler.h"
+#include "LlvmLinker.h"
+#include "LlvmObject.h"
 #include "VpuImage.h"
+#include "VpuCompiler.h"
 
 #include <assert.h>
 #include <malloc.h>
@@ -12,6 +13,8 @@
 #include <sstream>
 
 #include <Windows.h>
+#include <dxcapi.h>
+#include <d3dcompiler.h>
 
 extern "C" __declspec(dllimport) void shader_main();
 extern "C" __declspec(dllimport) VpuThreadLocalStorage g_tls;
@@ -281,15 +284,15 @@ VpuThreadContext g_vpuThreadContext;
 
 int main(int argc, char ** argv)
 {
-    printf("linker shader byte-code\n");
+	ID3DBlob *pByteCode;
+	HRESULT hr = D3DReadFileToBlob(L"Test.cso", &pByteCode);
+	assert(hr == S_OK);
 
-    vpu_linker(argv[0],
-		"VpuShaderLib.bc",
-		"DxilToVpu.ll",
-		"test.dxil",
-		"VpuShader.bc");
-
-    vpu_compile(argv[0], "VpuShader.bc", "VpuShader.obj");
+	ID3DBlob *pImage;
+	if (!vpu_compiler(pByteCode, &pImage)) {
+		printf("failed to compile byte code\n");
+		exit(1);
+	}
 
     printf("loading vpu simulator\n");
 	g_vpuSim.Load();
@@ -327,21 +330,10 @@ int main(int argc, char ** argv)
         g_vpuSim.SetUav(i, uavAddress[i], sizeof(uavElement));
 	}
 	
-	printf("building image from object\n");
-	VpuImage vpuImage;
-
-	if (!vpuImage.BuildFromObj("VpuShader.obj", "main")) {
-		printf("error opening object\n");
-		exit(1);
-	}
-
 	std::basic_stringstream<uint8_t> storage;
-	vpuImage.Store(storage);
-
-	printf("image storage size = %d\n", (int) storage.tellp());
+	storage.write((const uint8_t *) pImage->GetBufferPointer(), pImage->GetBufferSize());
 
 	storage.seekg(0);
-
 	VpuImage loadedImage;
 	loadedImage.Load(storage);
 

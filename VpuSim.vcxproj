@@ -141,9 +141,15 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\git\github.com\bhouse-microsoft\VpuSimShaderCompiler.build64\Debug\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>LLVMAggressiveInstCombine.lib;LLVMAnalysis.lib;LLVMAsmParser.lib;LLVMAsmPrinter.lib;LLVMBinaryFormat.lib;LLVMBitReader.lib;LLVMBitWriter.lib;LLVMCodeGen.lib;LLVMCore.lib;LLVMDebugInfoCodeView.lib;LLVMDebugInfoDWARF.lib;LLVMDebugInfoMSF.lib;LLVMDebugInfoPDB.lib;LLVMDemangle.lib;LLVMGlobalISel.lib;LLVMInstCombine.lib;LLVMInstrumentation.lib;LLVMipo.lib;LLVMIRReader.lib;LLVMLinker.lib;LLVMMC.lib;LLVMMCDisassembler.lib;LLVMMCParser.lib;LLVMMIRParser.lib;LLVMObject.lib;LLVMProfileData.lib;LLVMScalarOpts.lib;LLVMSelectionDAG.lib;LLVMSupport.lib;LLVMSymbolize.lib;LLVMTarget.lib;LLVMTransformUtils.lib;LLVMVectorize.lib;LLVMX86AsmParser.lib;LLVMX86AsmPrinter.lib;LLVMX86CodeGen.lib;LLVMX86Desc.lib;LLVMX86Disassembler.lib;LLVMX86Info.lib;LLVMX86Utils.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir);C:\git\github.com\bhouse-microsoft\VpuSimShaderCompiler.build64\Debug\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>LLVMAggressiveInstCombine.lib;LLVMAnalysis.lib;LLVMAsmParser.lib;LLVMAsmPrinter.lib;LLVMBinaryFormat.lib;LLVMBitReader.lib;LLVMBitWriter.lib;LLVMCodeGen.lib;LLVMCore.lib;LLVMDebugInfoCodeView.lib;LLVMDebugInfoDWARF.lib;LLVMDebugInfoMSF.lib;LLVMDebugInfoPDB.lib;LLVMDemangle.lib;LLVMGlobalISel.lib;LLVMInstCombine.lib;LLVMInstrumentation.lib;LLVMipo.lib;LLVMIRReader.lib;LLVMLinker.lib;LLVMMC.lib;LLVMMCDisassembler.lib;LLVMMCParser.lib;LLVMMIRParser.lib;LLVMObject.lib;LLVMProfileData.lib;LLVMScalarOpts.lib;LLVMSelectionDAG.lib;LLVMSupport.lib;LLVMSymbolize.lib;LLVMTarget.lib;LLVMTransformUtils.lib;LLVMVectorize.lib;LLVMX86AsmParser.lib;LLVMX86AsmPrinter.lib;LLVMX86CodeGen.lib;LLVMX86Desc.lib;LLVMX86Disassembler.lib;LLVMX86Info.lib;LLVMX86Utils.lib;dxcompiler.lib;d3dcompiler.lib;VpuCompiler.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>copy "$(WDKBinRoot)\$(Platform)\dxcompiler.dll" "$(OutDir)\dxcompiler.dll"</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>Copying dxcompiler.dll</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -187,17 +193,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Vpu.h" />
-    <ClInclude Include="VpuCompiler.h" />
-    <ClInclude Include="VpuLinker.h" />
-    <ClInclude Include="VpuImage.h" />
-    <ClInclude Include="VpuObject.h" />
     <ClInclude Include="VpuShaderBinary.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="VpuCompiler.cpp" />
-    <ClCompile Include="VpuImage.cpp" />
-    <ClCompile Include="VpuLinker.cpp" />
-    <ClCompile Include="VpuObject.cpp" />
     <ClCompile Include="VpuShaderBinary.cpp" />
     <CustomBuild Include="VpuShaderLib.c">
       <FileType>CppCode</FileType>
@@ -229,8 +227,10 @@
       <AssemblerOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">AssemblyCode</AssemblerOutput>
       <AssemblerOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)%(Filename).dxil</AssemblerOutputFile>
       <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(WDKBinRoot)\$(Platform)\dxc.exe" -T cs_6_0 -E main %(Identity) &gt; $(OutDir)%(Filename).dxil</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"> $(OutDir)%(Filename).dxil</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(WDKBinRoot)\$(Platform)\dxc.exe" -T cs_6_0 -E main %(Identity) &gt; $(OutDir)%(Filename).dxil
+"$(WDKBinRoot)\$(Platform)\dxc.exe" -T cs_6_0 -E main %(Identity) -Fo $(OutDir)%(Filename).cso
+</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)%(Filename).dxil;$(OutDir)%(Filename).cso</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
       <TreatOutputAsContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</TreatOutputAsContent>
     </CustomBuild>
