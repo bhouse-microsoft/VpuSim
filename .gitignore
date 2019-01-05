@@ -4,3 +4,4 @@ obj
 VpuShader.vcxproj.user
 VpuSim.vcxproj.user
 *.bc
+VpuCompiler.vcxproj.user
