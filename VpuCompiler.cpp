@@ -1,12 +1,25 @@
+#include "llvm/Support/Error.h"
+#include "llvm/Object/Binary.h"
+#include "llvm/Object/ObjectFile.h"
+#include "llvm/Object/COFF.h"
+#include "llvm/Object/ELF.h"
+
 #include "VpuCompiler.h"
 #include "LlvmLinker.h"
 #include "LlvmCompiler.h"
 #include "VpuImage.h"
 
+#include "LlvmObject.h"
+
 #include <dxcapi.h>
 #include <d3dcompiler.h>
 
 #include <assert.h>
+
+using namespace llvm;
+using namespace object;
+
+#define TLS_SYMBOL "g_tls"
 
 bool vpu_compiler(ID3DBlob * inDxilByteCode, ID3DBlob ** outVpuImage)
 {
@@ -32,25 +45,58 @@ bool vpu_compiler(ID3DBlob * inDxilByteCode, ID3DBlob ** outVpuImage)
 
 	llvm_compile("vpu_compiler", "VpuShader.bc", "VpuShader.obj");
 
-	VpuImage vpuImage;
+	bool success = true;
+	VpuObject obj;
 
-	if (!vpuImage.BuildFromObj("VpuShader.obj", "main")) {
-		printf("error opening object\n");
-		exit(1);
+	VpuImageHeader header;
+
+	success = obj.Open("VpuShader.obj") &&
+		obj.GetSymbolValue("main", header.m_entryOffset) &&
+		obj.GetSymbolValue(TLS_SYMBOL, header.m_tlsSize);
+
+	if (success) {
+		header.m_codeSize = obj.GetCodeSize();
+		header.m_relocationCount = obj.GetRelocations().size();
+
+		hr = D3DCreateBlob(header.GetSerializationSize(), outVpuImage);
+		assert(hr == S_OK);
+
+		VpuImageHeader * image = (VpuImageHeader*) (*outVpuImage)->GetBufferPointer();
+
+		*image = header;
+
+		const std::vector<VpuObjRelocation> & objRelocations = obj.GetRelocations();
+
+		VpuRelocation * relocations = (VpuRelocation *)(image + 1);
+
+		int relocationCount = 0;
+		for (auto & objr : objRelocations) {
+			VpuRelocation & r = relocations[relocationCount++];
+
+			r.m_fixupOffset = objr.m_fixupOffset;
+			r.m_type = objr.m_type;
+
+			if (objr.m_symbolName == TLS_SYMBOL)
+				r.m_referenceOffset = header.GetTlsOffset();
+			else {
+
+				std::string name = objr.m_symbolName;
+
+				if (!obj.GetSymbolValue(name.c_str(), r.m_referenceOffset)) {
+					success = false;
+					break;
+				}
+			}
+		}
+
+		if (success) {
+			assert(relocationCount == header.m_relocationCount);
+			uint8_t * code = (uint8_t *)&relocations[header.m_relocationCount];
+			obj.GetCode(code, header.m_codeSize);
+		}
 	}
 
-	std::basic_stringstream<uint8_t> storage;
-	vpuImage.Store(storage);
-
-	uint64_t blobSize = storage.tellp();
-
-	printf("image storage size = %d\n", (int)blobSize);
-
-	hr = D3DCreateBlob(blobSize, outVpuImage);
-	assert(hr == S_OK);
-
-	storage.seekp(0);
-	storage.read((uint8_t *)(*outVpuImage)->GetBufferPointer(), blobSize);
+	obj.Close();
 
 	return true;
 }

@@ -330,26 +330,21 @@ int main(int argc, char ** argv)
         g_vpuSim.SetUav(i, uavAddress[i], sizeof(uavElement));
 	}
 	
-	std::basic_stringstream<uint8_t> storage;
-	storage.write((const uint8_t *) pImage->GetBufferPointer(), pImage->GetBufferSize());
+	VpuImageHeader * header = (VpuImageHeader *)pImage->GetBufferPointer();
 
-	storage.seekg(0);
-	VpuImage loadedImage;
-	loadedImage.Load(storage);
-
-	uint64_t imageSize = loadedImage.GetImageInMemorySize();
-	uint8_t * image = (uint8_t *)VirtualAlloc(NULL, imageSize, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+	uint64_t imageSize = header->GetImageSize();
+	uint8_t * imageBase = (uint8_t *)VirtualAlloc(NULL, imageSize, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 	
-	if (!loadedImage.LoadInMemory(image, imageSize)) {
+	if (!header->Load(imageBase, imageSize)) {
 		printf("error loading binary\n");
 		exit(1);
 	}
 
-	uint64_t tlsOffset = loadedImage.GetTlsOffset();
-	uint64_t entryOffset = loadedImage.GetEntryOffset();
+	uint64_t tlsOffset = header->GetTlsOffset();
+	uint64_t entryOffset = header->GetEntryOffset();
 
-    VpuThreadLocalStorage * tls = (VpuThreadLocalStorage *) (image + tlsOffset);
-    void(*shader_main)() = (void(*)(void)) (image + entryOffset);
+    VpuThreadLocalStorage * tls = (VpuThreadLocalStorage *) (imageBase + tlsOffset);
+    void(*shader_main)() = (void(*)(void)) (imageBase + entryOffset);
 
     printf("running shader\n");
 
@@ -362,7 +357,7 @@ int main(int argc, char ** argv)
         shader_main();
     }
 
-    VirtualFree(image, 0, MEM_RELEASE);
+    VirtualFree(imageBase, 0, MEM_RELEASE);
 
     printf("results\n");
     uavElement uavResult[4];

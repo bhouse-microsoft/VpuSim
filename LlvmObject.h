@@ -36,10 +36,10 @@ public:
 		return true;
 	}
 
-	void GetRelocations(std::vector<VpuObjRelocation> & relocations)
+	const std::vector<VpuObjRelocation> & GetRelocations(void)
 	{
 		assert(m_loaded);
-		relocations = m_relocations;
+		return m_relocations;
 	}
 
 	uint64_t GetCodeSize() { assert(m_loaded); return m_code.getSize(); }

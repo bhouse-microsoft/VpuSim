@@ -5,53 +5,46 @@
 #include <assert.h>
 #include <sstream>
 
-class VpuImage
+struct VpuImageHeader
 {
-public:
+	uint64_t m_codeSize;
+	uint64_t m_entryOffset;
+	uint64_t m_tlsSize;
+	uint16_t m_relocationCount;
 
-	VpuImage() 
+	uint64_t GetSerializationSize(void)
 	{
-		m_loaded = false;
-		m_code = nullptr;
-	}
-	~VpuImage()
-	{
-		if (m_loaded) {
-			assert(m_code != nullptr);
-			free(m_code);
-			m_code = nullptr;
-		}
+		return sizeof(VpuImageHeader) + (m_relocationCount * sizeof(VpuRelocation)) + m_codeSize;
 	}
 
-	bool BuildFromObj(const char * objPath, const char * entryName);
+	uint64_t GetTlsOffset(void)
+	{
+		return AlignUp(m_codeSize, kVpuImageCodeAlignment);
+	}
 
-	void Store(std::basic_stringstream <uint8_t> & s);
-	void Load(std::basic_stringstream <uint8_t> & s);
+	uint64_t GetImageSize()
+	{
+		return AlignUp(m_codeSize, kVpuImageCodeAlignment) +
+			AlignUp(m_tlsSize, kVpuImagekDataAlignment);
+	}
 
-	uint64_t GetImageInMemorySize() { return m_codeSize + m_dataSize;  }
-	bool LoadInMemory(uint8_t * base, uint64_t size);
-	uint64_t GetEntryOffset() { return m_entryOffset;  }
-	uint64_t GetTlsOffset() { return m_codeSize; }
+	uint64_t GetEntryOffset()
+	{
+		return m_entryOffset;
+	}
+
+	bool Load(uint8_t * base, uint64_t size);
+	bool ApplyRelocation(uint8_t * base, VpuRelocation * reolocation);
 
 private:
 
-	bool m_loaded;
-
-	std::vector<VpuRelocation> m_relocations;
-	uint8_t * m_code;
-
-	uint64_t m_codeSize;
-	uint64_t m_dataSize;
-
-	uint64_t m_entryOffset;
-	uint64_t m_tlsSize;
+	static const uint32_t kVpuImageCodeAlignment = 4096;
+	static const uint32_t kVpuImagekDataAlignment = 4096;
 
 	uint64_t AlignUp(uint64_t value, uint64_t alignment)
 	{
 		uint64_t mask = alignment - 1;
 		return (value + mask) & ~mask;
 	}
-
-	bool ApplyRelocation(uint8_t * base, VpuRelocation & reolocation);
 
 };
